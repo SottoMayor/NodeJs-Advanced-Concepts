@@ -1,2 +1,3 @@
-# AdvancedNodeStarter
-Starting project for a course on Advanced Node @ Udemy
+# NodeJs Advanced Concepts
+Learn the features which will level up the NodeJs skills! 
+resource: https://www.udemy.com/course/advanced-node-for-developers
