@@ -14,6 +14,19 @@ module.exports = app => {
   });
 
   app.get('/api/blogs', requireLogin, async (req, res) => {
+    // Redis Goal: Catch queried data when we search at the first time in the DB and store it.
+    //             When we need it, redis will return this data without consulting the database.
+
+    const redis = require('redis'); // npm install --save redis
+    const redisUrl = 'redis://127.0.0.1:6379' // localhost
+    const redisClient = redis.createClient(redisUrl);
+    // Now, we wanna add promise to a 'redisClient.get', actually this function only work with callback.
+    const util = require('util');
+    redisClient.get = util.promisify(redisClient.get);
+
+    // Redis Flow 1: Do we have any cached data in redis related to this query?
+    const cachedBlogs = await redisClient.get(req.user.id);
+
     const blogs = await Blog.find({ _user: req.user.id });
 
     res.send(blogs);
