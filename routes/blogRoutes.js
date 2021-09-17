@@ -26,10 +26,24 @@ module.exports = app => {
 
     // Redis Flow 1: Do we have any cached data in redis related to this query?
     const cachedBlogs = await redisClient.get(req.user.id);
+    const parsedBlogs = JSON.parse(cachedBlogs); // JSON to JS Object!
+    
+    console.log(parsedBlogs);
 
+    // Redis Flow 2: If yes, respond to the resquest right away and return it.
+    if(parsedBlogs){
+      console.log('SERVING REDIS');
+      return res.status(200).json({parsedBlogs: parsedBlogs});
+    }
+
+    // Redis Flow 3: If no, we need to responde to the resquest and update the cache 
+    //               to store data.
     const blogs = await Blog.find({ _user: req.user.id });
 
+    console.log('SERVING DB');
     res.send(blogs);
+
+    redisClient.set(req.user.id, JSON.stringify(blogs));
   });
 
   app.post('/api/blogs', requireLogin, async (req, res) => {
