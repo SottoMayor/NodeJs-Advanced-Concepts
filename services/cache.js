@@ -21,9 +21,14 @@ mongoose.Query.prototype.exec = async function () {
 
     // Redis Flow 2: The 'redisKey' already exists! Return the result stored in redis.
     if(cachedValue){
-        console.log(cachedValue);
-        
-        return JSON.parse(cachedValue);
+        // cachedValue is a Raw JSON, we need convert it to a mongoose object!
+        // For this, we'll use the mongoose models.
+
+        // BUT, this approach convert JSON objects to mongoose objects. We have, in other hand,
+        // an array! We need convert this array to mongoose array of 'objects'(docs).
+        const document = new this.model(JSON.parse(cachedValue)); 
+
+        return document;
     }
 
     // Redis Flow 3: The 'redisKey' not exists yet! Query the result and store it into redis.
