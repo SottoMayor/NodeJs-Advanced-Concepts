@@ -22,10 +22,14 @@ mongoose.Query.prototype.exec = async function () {
     // Redis Flow 2: The 'redisKey' already exists! Return the result stored in redis.
     if(cachedValue){
         console.log(cachedValue);
+        
+        return JSON.parse(cachedValue);
     }
 
     // Redis Flow 3: The 'redisKey' not exists yet! Query the result and store it into redis.
     const result = await exec.apply(this, arguments);
-    console.log(arguments);
+    
+    redisClient.set(redisKey, JSON.stringify(result));
 
+    return result;
 };
