@@ -50,7 +50,14 @@ mongoose.Query.prototype.exec = async function () {
     // Redis Flow 3: The 'redisKey' not exists yet! Query the result and store it into redis.
     const result = await exec.apply(this, arguments);
     
-    redisClient.hset(this.hashKey, redisKey, JSON.stringify(result), 'EX', 10);
+    redisClient.hmset(this.hashKey, redisKey, JSON.stringify(result), 'EX', 10);
 
     return result;
 };
+
+module.exports = {
+    // Exporting a function to clear nested hashes.
+    clearHash(hashKey){
+        redisClient.del(JSON.stringify(hashKey));
+    }
+}
