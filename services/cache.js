@@ -8,7 +8,22 @@ redisClient.get = util.promisify(redisClient.get);
 
 const exec = mongoose.Query.prototype.exec;
 
+mongoose.Query.prototype.cache = function() {
+    // Adding a new prototype in mongoose.Query
+    // This prototype will control if the query should or not be cached.
+
+    this._cache = true; // Condition to be cacheable!
+
+    return this; // Condition to be chainable
+}
+
 mongoose.Query.prototype.exec = async function () {
+
+    // Checking if this data should be cached.
+    if(!this._cache){
+        return exec.apply(this, arguments);
+    }
+
     // Generating redis UNIQUE KEYS.
     const redisKey = JSON.stringify(
         Object.assign({}, this.getQuery(), {
