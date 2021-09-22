@@ -15,7 +15,7 @@ module.exports = app => {
 
   app.get('/api/blogs', requireLogin, async (req, res) => {
     // To enable the cache, now we need to call .cache() [defined in services/cache]
-    const blogs = await Blog.find({ _user: req.user.id }).cache();
+    const blogs = await Blog.find({ _user: req.user.id }).cache({ key: req.user.id });
 
     res.send(blogs);
   });

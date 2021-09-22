@@ -4,15 +4,17 @@ const util = require('util');
 
 const redisUrl = 'redis://127.0.0.1:6379';
 const redisClient = redis.createClient(redisUrl);
-redisClient.get = util.promisify(redisClient.get);
+redisClient.hget = util.promisify(redisClient.hget);
 
 const exec = mongoose.Query.prototype.exec;
 
-mongoose.Query.prototype.cache = function() {
+mongoose.Query.prototype.cache = function(options = {}) {
     // Adding a new prototype in mongoose.Query
     // This prototype will control if the query should or not be cached.
 
     this._cache = true; // Condition to be cacheable!
+
+    this.hashKey = JSON.stringify(options.key || 'default_key');
 
     return this; // Condition to be chainable
 }
@@ -32,7 +34,7 @@ mongoose.Query.prototype.exec = async function () {
     );
 
     // Redis Flow 1: Verify if the 'redisKey' already exists in redis
-    const cachedValue = await redisClient.get(redisKey);
+    const cachedValue = await redisClient.hget(this.hashKey, redisKey);
 
     // Redis Flow 2: The 'redisKey' already exists! Return the result stored in redis.
     if(cachedValue){
@@ -48,7 +50,7 @@ mongoose.Query.prototype.exec = async function () {
     // Redis Flow 3: The 'redisKey' not exists yet! Query the result and store it into redis.
     const result = await exec.apply(this, arguments);
     
-    redisClient.set(redisKey, JSON.stringify(result));
+    redisClient.hset(this.hashKey, redisKey, JSON.stringify(result), 'EX', 10);
 
     return result;
 };
