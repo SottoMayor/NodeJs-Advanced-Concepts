@@ -11,6 +11,9 @@ beforeEach(async () => {
     await newPage.goto('localhost:3000');
 })
 
+// This will be executes after each running test
+afterEach(async () => browser.close());
+
 
 describe('Testing the header', async () => {
 
